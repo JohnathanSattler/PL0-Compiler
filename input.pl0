@@ -1,0 +1,10 @@
+const a = 10;
+var x;
+begin
+  x := 0;
+  while x < a do begin
+  	if odd x then
+  		write x;
+	x := x + 1;
+  end;
+end .

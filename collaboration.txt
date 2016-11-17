@@ -1,0 +1,21 @@
+// Compiler Builder 8
+// Lester Young
+// Timothy Konzel
+// Remington Howell
+// Johnathan Sattler
+// John Herold
+
+Lester Young
+Worked on the parser
+
+Timothy Konzil
+Implemented symbol table
+
+Remington Howell
+Worked on helper functions in parser.c
+
+Johnathan Sattler
+Worked on code generation
+
+John Herold
+Wrote file output, and printing functions
