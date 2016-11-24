@@ -14,6 +14,7 @@
 #define MAX_STACK_HEIGHT 2000
 #define MAX_CODE_LENGTH 500
 #define MAX_LEXI_LEVELS 3
+#define MAX_BASE_LENGTH 100
 
 // arrays containing opcode information
 char * opCodes[] = { "Nil",
@@ -28,6 +29,9 @@ char * OPR[] = {
 char * SIO[] = {
 	"OUT", "INP", "HLT"
 };
+
+int bases[MAX_BASE_LENGTH];
+int bx = 0;
 
 // instruction struct
 typedef struct instruction
@@ -44,6 +48,7 @@ void printCode(int size, instruction code[]);
 void printInstruction(instruction ir, int i);
 void printContents(instruction ir, int i, int pc, int bp, int sp, int stack[]);
 void printStack(int stack[], int sp, int bp);
+int isBase(int num);
 int base(int level, int b, int stack[]);
 void fetchCycle(instruction code[], int stack[], int * pc, int * bp, int * sp, int * ir);
 void executeCycle(instruction ir, int stack[], int * pc, int * bp, int * sp, int * halt);
@@ -200,7 +205,7 @@ void printStack(int stack[], int sp, int bp) {
 	for (i = 1; i <= sp; i++) {
 		
 		// add a spacing line where necessary
-		if (bp == i && bp > 1)
+		if (isBase(i))
 			printf("| ");
 
 		//print the stack
@@ -210,8 +215,19 @@ void printStack(int stack[], int sp, int bp) {
 	return;
 }
 
+int isBase(int num) {
+
+	int i;
+
+	for (i = 0; i < bx; i++)
+		if (bases[i] == num)
+			return 1;
+
+	return 0;
+}
+
 int base(int level, int b, int stack[]) {
-	
+
 	// return base of activation record at given level
 	while (level > 0) {
 		b = stack[b + 1];
@@ -275,6 +291,8 @@ void executeCycle(instruction ir, int stack[], int * pc, int * bp, int * sp, int
 					*sp = *bp - 1;
 					*pc = stack[*sp + 4];
 					*bp = stack[*sp + 3];
+
+					bx--;
 					break;
 				case 1: // NEG
 					stack[*sp] = -stack[*sp];
@@ -345,6 +363,9 @@ void executeCycle(instruction ir, int stack[], int * pc, int * bp, int * sp, int
 			stack[*sp + 4] = *pc;
 			*bp = *sp + 1;
 			*pc = ir.m;
+
+			bases[bx] = *bp;
+			bx++;
 			break;
 		case 6: // INC
 			*sp = *sp + ir.m;
@@ -361,13 +382,13 @@ void executeCycle(instruction ir, int stack[], int * pc, int * bp, int * sp, int
 		case 9: // SIO
 			switch(ir.m) {
 				case 0: // OUT
-					printf("%2d\n", stack[*sp]);
+					printf("\nOutput: %2d          ", stack[*sp]);
 					(*sp)--;
 					break;
 				case 1: // INP
 					(*sp)++;
 					scanf("%d", &stack[*sp]);
-					printf("read %d from input\n", stack[*sp]);
+					printf("Input: %2d           ", stack[*sp]);
 					break;
 				case 2: // HLT
 					*halt = 1;
