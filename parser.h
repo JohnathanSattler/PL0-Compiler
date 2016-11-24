@@ -16,7 +16,7 @@
 int program(tok * allTokens, const char * outputFileName, int pm0);
 void block(int level);
 void constDeclaration(int level);
-void varDeclaration(int level);
+void varDeclaration(int level, int * numVar);
 void procedureDeclaration(int level);
 void statement(int level);
 void condition(int level);

@@ -211,7 +211,7 @@ void printStack(int stack[], int sp, int bp) {
 }
 
 int base(int level, int b, int stack[]) {
-
+	
 	// return base of activation record at given level
 	while (level > 0) {
 		b = stack[b + 1];
