@@ -56,6 +56,7 @@ void block() {
 
 	constDeclaration();
 	varDeclaration();
+	procedureDeclaration();
 
 	emit(INC, 0, 4 + numVar);
 
@@ -109,6 +110,21 @@ void varDeclaration() {
 	}
 }
 
+// declare procedures
+void procedureDeclaration() {
+
+	char * name;
+
+	while (token == procsym) {
+		advance();
+		name = identName;
+		eat(identsym);
+		eat(semicolonsym);
+		block();
+		eat(semicolonsym);
+	}
+}
+
 // looks for a statement
 void statement() {
 
@@ -140,6 +156,12 @@ void statement() {
 		else
 			error(-6);
 	}
+	// look for a callsym
+	else if (token == callsym) {
+		advance();
+		name = identName;
+		eat(identsym);
+	}
 	// look for a beginsym
 	else if (token == beginsym) {
 		do {
@@ -159,6 +181,19 @@ void statement() {
 		emit(JPC, 0, 0);
 		statement();
 		code[cx1].m = cx;
+
+		// check if there is an else statement
+		if (token == elsesym) {
+			code[cx1].m += 1;
+
+			cx1 = cx;
+			emit(JMP, 0, 0);
+
+			advance();
+			statement();
+
+			code[cx1].m = cx;
+		}
 	}
 	// look for a whilesym
 	else if (token == whilesym) {

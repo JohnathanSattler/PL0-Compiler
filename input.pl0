@@ -1,10 +1,29 @@
 const a = 10;
 var x;
+
+procedure test;
+	const b = 5;
+	var y;
+
+	begin
+		y := 0;
+		while y < b do begin
+			if odd y then
+				write y
+			else
+				write b;
+			y := y + 1;
+		end;
+	end;
+
 begin
-  x := 0;
-  while x < a do begin
-  	if odd x then
-  		write x;
-	x := x + 1;
-  end;
+	x := 0;
+	while x < a do begin
+		if odd x then
+			write x
+		else
+			write a;
+		x := x + 1;
+	end;
+	call test;
 end .

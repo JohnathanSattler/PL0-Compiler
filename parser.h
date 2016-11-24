@@ -17,6 +17,7 @@ int program(tok * allTokens, const char * outputFileName, int pm0);
 void block();
 void constDeclaration();
 void varDeclaration();
+void procedureDeclaration();
 void statement();
 void condition();
 void relOp();
