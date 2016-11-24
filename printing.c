@@ -151,7 +151,7 @@ void printAssembly(instruction code[], int size) {
 	printf("----------\n");
 
 	for (i = 0; i < size; i++)
-		printf("%d %d %d\n", code[i].op, code[i].l, code[i].m);
+		printf("%3d) - %d %2d %2d\n", i, code[i].op, code[i].l, code[i].m);
 
 	return;
 }

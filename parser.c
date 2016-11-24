@@ -14,13 +14,17 @@ instruction code[MAX_CODE_LENGTH];
 tok * tokenList;
 
 int token;
-int numError = 0;
+
 int cx = 0;
+
+int numError = 0;
 int numSym = 0;
+int numVar = 0;
+
 char * identName;
 int identVal;
+
 int relOpCode;
-int numVar = 0;
 
 // execute the program
 int program(tok * allTokens, const char * outputFileName, int pm0) {
@@ -32,7 +36,7 @@ int program(tok * allTokens, const char * outputFileName, int pm0) {
 	printf("\n");
 
 	advance();
-	block();
+	block(0);
 	eat(periodsym);
 
 	// halt the program
@@ -52,19 +56,28 @@ int program(tok * allTokens, const char * outputFileName, int pm0) {
 }
 
 // run a block of the program
-void block() {
+void block(int level) {
 
-	constDeclaration();
-	varDeclaration();
-	procedureDeclaration();
+	int tempSym = numSym;
+	int cx1;
 
+	cx1 = cx;
+	emit(JMP, 0, 0);
+
+	constDeclaration(level);
+	varDeclaration(level);
+	procedureDeclaration(level);
+
+	code[cx1].m = cx;
 	emit(INC, 0, 4 + numVar);
 
-	statement();
+	statement(level);
+
+	numSym = tempSym;
 }
 
 // define constants
-void constDeclaration() {
+void constDeclaration(int level) {
 
 	char * name;
 	int val;
@@ -90,7 +103,7 @@ void constDeclaration() {
 }
 
 // define variables
-void varDeclaration() {
+void varDeclaration(int level) {
 
 	char * name;
 
@@ -111,7 +124,7 @@ void varDeclaration() {
 }
 
 // declare procedures
-void procedureDeclaration() {
+void procedureDeclaration(int level) {
 
 	char * name;
 
@@ -119,14 +132,19 @@ void procedureDeclaration() {
 		advance();
 		name = identName;
 		eat(identsym);
+
+		addSymbol(3, name, 0, level, cx);
+
 		eat(semicolonsym);
-		block();
+		block(level + 1);
 		eat(semicolonsym);
+
+		emit(OPR, 0, OPR_RET);
 	}
 }
 
 // looks for a statement
-void statement() {
+void statement(int level) {
 
 	int cx1;
 	int cx2;
@@ -138,7 +156,7 @@ void statement() {
 	// look for an identsym
 	if (token == identsym) {
 		name = identName;
-		i = symbolExists(name);
+		i = symbolExists(name, level);
 
 		// if the identifier isn't defined, return an error
 		if (i < 0)
@@ -148,7 +166,7 @@ void statement() {
 
 		advance();
 		eat(becomessym);
-		expression();
+		expression(level);
 
 		// if the identifier isn't a variable, return an error
 		if (symbolTable[i].kind == 2)
@@ -161,12 +179,20 @@ void statement() {
 		advance();
 		name = identName;
 		eat(identsym);
+		i = symbolExists(name, level);
+
+		if (i < 0)
+			error(-5);
+		else
+			m = symbolTable[i].addr;
+
+		emit(CAL, level, m);
 	}
 	// look for a beginsym
 	else if (token == beginsym) {
 		do {
 			advance();
-			statement();
+			statement(level);
 		} while (token == semicolonsym);
 
 		eat(endsym);
@@ -174,12 +200,12 @@ void statement() {
 	// look for an ifsym
 	else if (token == ifsym) {
 		advance();
-		condition();
+		condition(level);
 		eat(thensym);
 
 		cx1 = cx;
 		emit(JPC, 0, 0);
-		statement();
+		statement(level);
 		code[cx1].m = cx;
 
 		// check if there is an else statement
@@ -190,7 +216,7 @@ void statement() {
 			emit(JMP, 0, 0);
 
 			advance();
-			statement();
+			statement(level);
 
 			code[cx1].m = cx;
 		}
@@ -199,12 +225,13 @@ void statement() {
 	else if (token == whilesym) {
 		cx1 = cx;
 		advance();
-		condition();
+		condition(level);
+
 		cx2 = cx;
 		emit(JPC, 0, 0);
 		eat(dosym);
 
-		statement();
+		statement(level);
 		emit(JMP, 0, cx1);
 		code[cx2].m = cx;
 	}
@@ -213,7 +240,7 @@ void statement() {
 		advance();
 
 		name = identName;
-		i = symbolExists(name);
+		i = symbolExists(name, level);
 
 		// if the identifier isn't defined, return an error
 		if (i < 0)
@@ -231,7 +258,7 @@ void statement() {
 		advance();
 
 		name = identName;
-		i = symbolExists(name);
+		i = symbolExists(name, level);
 
 		// if the identifier isn't defined, return an error
 		if (i < 0)
@@ -251,18 +278,18 @@ void statement() {
 }
 
 // look for a condition
-void condition() {
+void condition(int level) {
 
 	// determine if the condition begins with an oddsym
 	if (token == oddsym) {
 		advance();
-		expression();
+		expression(level);
 
 		emit(OPR, 0, OPR_ODD);
 	} else {
-		expression();
+		expression(level);
 		relOp();
-		expression();
+		expression(level);
 
 		emit(OPR, 0, relOpCode);
 	}
@@ -292,7 +319,7 @@ void relOp() {
 }
 
 // look for an expression
-void expression() {
+void expression(int level) {
 
 	int addop;
 
@@ -301,12 +328,12 @@ void expression() {
 		addop = token;
 
 		advance();
-		term();
+		term(level);
 
 		if (addop == minussym)
 			emit(OPR, 0, OPR_NEG); // negate
 	} else {
-		term();
+		term(level);
 	}
 
 	// loop for every plussym or minussym
@@ -314,7 +341,7 @@ void expression() {
 		addop = token;
 
 		advance();
-		term();
+		term(level);
 
 		if (addop == plussym)
 			emit(OPR, 0, OPR_ADD); // addition
@@ -324,18 +351,18 @@ void expression() {
 }
 
 // look for a term
-void term() {
+void term(int level) {
 
 	int mulop;
 
-	factor();
+	factor(level);
 
 	// loop for every multsym and slashsym
 	while (token == multsym || token == slashsym) {
 		mulop = token;
 
 		advance();
-		factor();
+		factor(level);
 
 		if (mulop == multsym)
 			emit(OPR, 0, OPR_MUL); // multiplication
@@ -345,7 +372,7 @@ void term() {
 }
 
 // look for a factor
-void factor() {
+void factor(int level) {
 
 	char * name;
 	int i, m;
@@ -353,7 +380,7 @@ void factor() {
 	// check for an identsym
 	if (token == identsym) {
 		name = identName;
-		i = symbolExists(name);
+		i = symbolExists(name, level);
 
 		// if the identifier isn't defined, return an error
 		if (i < 0)
@@ -379,7 +406,7 @@ void factor() {
 	// look for an lparentsym
 	else if (token == lparentsym) {
 		advance();
-		expression();
+		expression(level);
 		eat(rparentsym);
 	}
 	// if unkown symbol encountered, return an error
@@ -414,6 +441,10 @@ void error(int num) {
 	printf("Error(%d): ", num);
 
 	switch (num) {
+		case -7:
+			printf("const, var, procedure already declared");
+			break;
+
 		case -6:
 			printf("Assignment to constant or procedure is not allowed.");
 			break;
@@ -519,23 +550,35 @@ void emit(int op, int l, int m) {
 }
 
 // check if a symbol is defined
-int symbolExists(char * name) {
+int symbolExists(char * name, int level) {
 
-	int i;
+	int i, num = -1, maxLevel = 0;
 
 	for (i = 0; i < numSym; i++)
-		if (strcmp(symbolTable[i].name, name) == 0)
-			return i;
+		if (strcmp(symbolTable[i].name, name) == 0 && symbolTable[i].level <= level && symbolTable[i].level >= maxLevel) {
+			num = i;
+			maxLevel = symbolTable[i].level;
+		}
 
-	return -1;
+	//if (num != -1)
+	//	printf("Lookup: %s\n", symbolTable[num].name);
+
+	return num;
 }
 
 // add a symbol to the symbol table
 void addSymbol(int kind, char * name, int val, int level, int addr) {
 
+	int exists = symbolExists(name, level);
+
+	if (exists != -1)
+		error(-7);
+
 	if (numSym > MAX_SYMBOL_TABLE_SIZE) {
 		error(-4);
 	} else {
+		//printf("Adding: %s\n", name);
+
 		symbolTable[numSym].kind = kind;
 		strcpy(symbolTable[numSym].name, name);
 		symbolTable[numSym].val = val;
