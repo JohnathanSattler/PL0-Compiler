@@ -100,7 +100,7 @@ void constDeclaration(int level) {
 
 			eat(numbersym);
 
-			addSymbol(1, name, val, 0, val);
+			addSymbol(1, name, val, level, val);
 		} while (token == commasym);
 
 		eat(semicolonsym);

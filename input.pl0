@@ -1,18 +1,42 @@
+const val = 10;
 var num;
 
-procedure odds;
+procedure d;
 	var i;
-	begin
-		i := 0;
 
-		while i <= num do begin
-			if odd i then
-				write i;
+	begin
+		i := num;
+		while i < val do begin
+			write i;
 			i := i + 1;
 		end;
 	end;
 
+procedure a;
+	const val = 7;
+	var num;
+
+	procedure b;
+		procedure c;
+			begin
+				num := num + 1;
+				call d;
+			end;
+
+		begin
+			num := num + 1;
+			call c;
+		end;
+
+	begin
+		num := 2;
+		call b;
+		write val;
+	end;
+
 begin
-	read num;
-	call odds;
+	num := 1;
+	call a;
+	write val;
+	write num;
 end.
