@@ -1,12 +1,12 @@
 Compiling:
 ----------
 Compile Compiler: make
-Compile vm		: gcc -o vm vm.c
+Compile vm: gcc -o vm vm.c
 
 Executing:
 ----------
 run compiler: ./compile (arguments) (input) (output)
-run vm		: ./vm (input)
+run vm: ./vm (input)
 
 Arguments:
 
@@ -17,6 +17,6 @@ Arguments:
 
 Examples:
 ---------
-compiler 			   : ./compile input.pl0 output.pm0
+compiler: ./compile input.pl0 output.pm0
 Compiler with arguments: ./compile --source --clean --tokens --pm0 input.pl0 output.pm0
-Virtual Machine		   : ./vm output.pm0
+Virtual Machine: ./vm output.pm0
