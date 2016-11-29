@@ -186,7 +186,13 @@ void statement(int level) {
 	else if (token == callsym) {
 		advance();
 		name = identName;
-		eat(identsym);
+		// eat(identsym);
+		if (token != identsym) {
+			token = callsym;
+			error(identsym);
+		}
+		advance();
+
 		i = symbolExists(name, level);
 
 		if (i < 0)
@@ -490,7 +496,10 @@ void error(int num) {
 			break;
 
 		case 2: // identsym
-			printf("const, var, procedure must be followed by identifier.");
+			if (token == callsym)
+				printf("call must be followed by an identifier.");
+			else
+				printf("const, var, procedure must be followed by identifier.");
 			break;
 
 		case 3: // numbersym
@@ -522,7 +531,10 @@ void error(int num) {
 			break;
 
 		case 22: // endsym
-			printf("end expected");
+			if (token == periodsym || token == semicolonsym || token == 0)
+				printf("end expected");
+			else
+				printf("expected ;");
 			break;
 
 		case 24: // thensym

@@ -6,16 +6,16 @@
 // John Herold
 
 Lester Young
-Worked on the parser
+Worked on else statement support for the parser, and code generation
 
 Timothy Konzil
-Implemented symbol table
+Worked on call statement support for the parser
 
 Remington Howell
-Worked on helper functions in parser.c
+Improved support of the symbol table for procedures, and lexi levels
 
 Johnathan Sattler
-Worked on code generation
+Worked on procedure support for the parser, and code generation
 
 John Herold
-Wrote file output, and printing functions
+Added implementation of lexi levels to the parser/code generator
